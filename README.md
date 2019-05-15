@@ -1,4 +1,4 @@
-# xlsx-style
+# xlsx-style(row height fix)
 
 Parser and writer for various spreadsheet formats.  Pure-JS cleanroom implementation from official specifications and related documents.
 
@@ -11,6 +11,17 @@ Report any issues to https://github.com/protobi/js-xlsx/issues.
 For those contributing to this fork:
 * `master` is the main branch, which follows the original repo to enable a future pull request.
 * `beta` branch is published to npm and bower to make this fork available for use.
+
+
+# How to build
+- install uglifyjs
+- run make dist from the project folder
+
+Do not pay attention to error message:
+`sed: -e expression #1, char 1: unknown command:`
+
+The output is in dist folder
+Use xlsx.full.min.js
 
 # Supported formats
 
@@ -137,7 +148,7 @@ function handleDrop(e) {
   e.preventDefault();
   var files = e.dataTransfer.files;
   var i, f;
-  
+
   for (i = 0, f = files[i]; i != files.length; ++i) {
     var reader = new FileReader();
     var name = f.name;
@@ -161,7 +172,7 @@ drop_dom_element.addEventListener('drop', handleDrop, false);
 function handleFile(e) {
   var files = e.target.files;
   var i, f;
-  
+
   for (i = 0, f = files[i]; i != files.length; ++i) {
     var reader = new FileReader();
     var name = f.name;
@@ -438,7 +449,7 @@ The following properties are currently used when generating an XLSX file, but no
 - `ws['!colBreaks']`: array of col break points, e.g. `[8,16]`
 - `ws['!pageSetup']`: `{scale: '100', orientation: 'portrait'||'landscape'}
 - `ws['!printHeader']`: array of first and last row indexes for repeat header on printing, e.g. `[1,1]` to repeat just first row
-- `ws['!freeze']`:  string cell reference for breakpoint, e.g. the following will freeze the first row and first column: 
+- `ws['!freeze']`:  string cell reference for breakpoint, e.g. the following will freeze the first row and first column:
         {
            xSplit: "1",
            ySplit: "1",
@@ -531,7 +542,7 @@ The exported `write` and `writeFile` functions accept an options argument:
   so non-Excel tools may ignore the data or blow up in the presence of dates.
 - showGridLines and tabSelected are currently used when generating an XLSX file but not yet parse.
 - Props specifies workbook properties
-   
+
 
 
 

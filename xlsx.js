@@ -4648,6 +4648,11 @@ var styles = {}; // shared styles
 
 var themes = {}; // shared themes
 
+var DEF_PPI = 96, PPI = DEF_PPI;
+function px2pt(px) { return px * 96 / PPI; }
+function pt2px(pt) { return pt * PPI / 96; }
+
+
 /* 18.8.21 fills CT_Fills */
 function parse_fills(t, opts) {
   styles.Fills = [];
@@ -7568,6 +7573,7 @@ function parse_ws_xml(data, opts, rels) {
 
   /* 18.3.1.17 cols CT_Cols */
   var columns = [];
+  var rows = [];
   if (opts.cellStyles && data.indexOf("</cols>") !== -1) {
     /* 18.3.1.13 col CT_Col */
     var cols = data.match(colregex);
@@ -7598,6 +7604,7 @@ function parse_ws_xml(data, opts, rels) {
   }
   if (mergecells.length > 0) s["!merges"] = mergecells;
   if (columns.length > 0) s["!cols"] = columns;
+  if (rows.length > 0) s["!rows"] = rows;
   return s;
 }
 
@@ -7864,7 +7871,7 @@ var parse_ws_xml_data = (function parse_ws_xml_data_factory() {
 })();
 
 function write_ws_xml_data(ws, opts, idx, wb) {
-  var o = [], r = [], range = safe_decode_range(ws['!ref']), cell, ref, rr = "", cols = [], R, C;
+  var o = [], r = [], range = safe_decode_range(ws['!ref']), cell, ref, rr = "", cols = [], R, C, rows = ws['!rows'];
   for (C = range.s.c; C <= range.e.c; ++C) cols[C] = encode_col(C);
   for (R = range.s.r; R <= range.e.r; ++R) {
     r = [];
@@ -7874,7 +7881,32 @@ function write_ws_xml_data(ws, opts, idx, wb) {
       if (ws[ref] === undefined) continue;
       if ((cell = write_ws_xml_cell(ws[ref], ref, ws, opts, idx, wb)) != null) r.push(cell);
     }
-    if (r.length > 0) o[o.length] = (writextag('row', r.join(""), {r: rr}));
+    if(r.length > 0 || (rows && rows[R])) {
+      params = ({r:rr}/*:any*/);
+      if(rows && rows[R]) {
+        row = rows[R];
+        if(row.hidden) params.hidden = 1;
+        height = -1;
+        if(row.hpx) height = px2pt(row.hpx);
+        else if(row.hpt) height = row.hpt;
+        if(height > -1) { params.ht = height; params.customHeight = 1; }
+        if(row.level) { params.outlineLevel = row.level; }
+      }
+      o[o.length] = (writextag('row', r.join(""), params));
+    }
+  }
+  if(rows) for(; R < rows.length; ++R) {
+    if(rows && rows[R]) {
+      params = ({r:R+1}/*:any*/);
+      row = rows[R];
+      if(row.hidden) params.hidden = 1;
+      height = -1;
+      if (row.hpx) height = px2pt(row.hpx);
+      else if (row.hpt) height = row.hpt;
+      if (height > -1) { params.ht = height; params.customHeight = 1; }
+      if (row.level) { params.outlineLevel = row.level; }
+      o[o.length] = (writextag('row', "", params));
+    }
   }
   return o.join("");
 }
